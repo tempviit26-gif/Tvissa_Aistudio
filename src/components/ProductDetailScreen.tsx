@@ -4,6 +4,7 @@ import { Button } from './ui/Button';
 import { QuantityStepper } from './ui/QuantityStepper';
 import { Accordion } from './ui/Accordion';
 import { ProductCard } from './ui/ProductCard';
+import { ProductDetailSkeleton } from './ui/SkeletonLoader';
 import { ArrowLeft, Heart, Shield, Sparkles, Truck, Check, Share2 } from 'lucide-react';
 
 interface ProductDetailScreenProps {
@@ -20,6 +21,7 @@ interface ProductDetailScreenProps {
   setActiveScreen: (screen: ActiveScreen) => void;
   isWishlisted: boolean;
   onToggleWishlist: (product: Product) => void;
+  isLoading?: boolean;
 }
 
 export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
@@ -30,20 +32,25 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({
   setActiveScreen,
   isWishlisted,
   onToggleWishlist,
+  isLoading = false,
 }) => {
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [selectedMaterial, setSelectedMaterial] = useState(
-    product.materialsAvailable?.[0] || product.material
+    product?.materialsAvailable?.[0] || product?.material || ''
   );
   const [selectedChainLength, setSelectedChainLength] = useState(
-    product.chainLengths?.[0] || '18"'
+    product?.chainLengths?.[0] || '18"'
   );
   const [selectedFinish, setSelectedFinish] = useState(
-    product.finishes?.[0] || 'High Polish'
+    product?.finishes?.[0] || 'High Polish'
   );
   const [selectedRingSize, setSelectedRingSize] = useState('7');
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+
+  if (isLoading || !product) {
+    return <ProductDetailSkeleton />;
+  }
 
   // Dynamic price calculation based on chosen metal
   const calculatedPrice = useMemo(() => {

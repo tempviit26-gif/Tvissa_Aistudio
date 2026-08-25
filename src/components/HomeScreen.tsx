@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Product, ActiveScreen } from '../types';
 import { ProductCard } from './ui/ProductCard';
 import { Button } from './ui/Button';
+import { ProductGridSkeleton } from './ui/SkeletonLoader';
 import { Droplet, Shield, HeartHandshake, Truck, ArrowRight, Sparkles } from 'lucide-react';
 
 interface HomeScreenProps {
@@ -11,6 +12,7 @@ interface HomeScreenProps {
   wishlistIds: string[];
   onToggleWishlist: (product: Product) => void;
   setActiveScreen: (screen: ActiveScreen) => void;
+  isLoading?: boolean;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
@@ -20,8 +22,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   wishlistIds,
   onToggleWishlist,
   setActiveScreen,
+  isLoading = false,
 }) => {
   const [priceFilter, setPriceFilter] = useState<'all' | 'under500' | '500to1000' | 'over1000'>('all');
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  const handlePriceFilterChange = (val: 'all' | 'under500' | '500to1000' | 'over1000') => {
+    if (val === priceFilter) return;
+    setIsFiltering(true);
+    setPriceFilter(val);
+    setTimeout(() => setIsFiltering(false), 260);
+  };
 
   const filteredCurated = products
     .filter((p) => {
@@ -125,7 +136,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </span>
             <select
               value={priceFilter}
-              onChange={(e) => setPriceFilter(e.target.value as any)}
+              onChange={(e) => handlePriceFilterChange(e.target.value as any)}
               className="bg-transparent border-none text-xs font-button uppercase tracking-wider text-primary focus:ring-0 focus:outline-none cursor-pointer pr-6"
               aria-label="Filter curated essentials by price"
             >
@@ -138,18 +149,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
 
         {/* 4-Column Essentials Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredCurated.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onSelect={onSelectProduct}
-              onQuickAdd={(p) => onAddToCart(p, 1)}
-              isWishlisted={wishlistIds.includes(product.id)}
-              onToggleWishlist={onToggleWishlist}
-            />
-          ))}
-        </div>
+        {isLoading || isFiltering ? (
+          <ProductGridSkeleton count={4} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fadeIn">
+            {filteredCurated.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onSelect={onSelectProduct}
+                onQuickAdd={(p) => onAddToCart(p, 1)}
+                isWishlisted={wishlistIds.includes(product.id)}
+                onToggleWishlist={onToggleWishlist}
+              />
+            ))}
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <Button

@@ -13,11 +13,13 @@ import { CreateAccountScreen } from './components/CreateAccountScreen';
 import { AboutScreen } from './components/AboutScreen';
 import { ContactScreen } from './components/ContactScreen';
 import { Toast, ToastData } from './components/ui/Toast';
-import { Eye, Sun, Moon } from 'lucide-react';
+import { Eye, Sun, Moon, Loader2 } from 'lucide-react';
 
 export function App() {
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product>(PRODUCTS[0]);
+  const [isLoadingScreen, setIsLoadingScreen] = useState(false);
+  const [isSimulatingLoading, setIsSimulatingLoading] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([
     {
       id: 'cart-init-1',
@@ -165,10 +167,21 @@ export function App() {
 
   // Screen selection
   const handleSelectProduct = (product: Product) => {
+    setIsLoadingScreen(true);
     setSelectedProduct(product);
     setActiveScreen('product');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      setIsLoadingScreen(false);
+    }, 280);
   };
+
+  const handleScreenChange = (screen: ActiveScreen) => {
+    setActiveScreen(screen);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const isCurrentScreenLoading = isLoadingScreen || isSimulatingLoading;
 
   const totalCartCount = cart.reduce((sum, itm) => sum + itm.quantity, 0);
 
@@ -178,10 +191,7 @@ export function App() {
       {/* 1. Global Navigation Header */}
       <Header
         activeScreen={activeScreen}
-        setActiveScreen={(s) => {
-          setActiveScreen(s);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        setActiveScreen={handleScreenChange}
         cartCount={totalCartCount}
         user={user}
         products={PRODUCTS}
@@ -199,10 +209,8 @@ export function App() {
             onAddToCart={handleAddToCart}
             wishlistIds={wishlistIds}
             onToggleWishlist={handleToggleWishlist}
-            setActiveScreen={(s) => {
-              setActiveScreen(s);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            setActiveScreen={handleScreenChange}
+            isLoading={isCurrentScreenLoading}
           />
         )}
 
@@ -213,10 +221,8 @@ export function App() {
             onAddToCart={handleAddToCart}
             wishlistIds={wishlistIds}
             onToggleWishlist={handleToggleWishlist}
-            setActiveScreen={(s) => {
-              setActiveScreen(s);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            setActiveScreen={handleScreenChange}
+            isLoading={isCurrentScreenLoading}
           />
         )}
 
@@ -226,12 +232,10 @@ export function App() {
             allProducts={PRODUCTS}
             onAddToCart={handleAddToCart}
             onSelectProduct={handleSelectProduct}
-            setActiveScreen={(s) => {
-              setActiveScreen(s);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            setActiveScreen={handleScreenChange}
             isWishlisted={wishlistIds.includes(selectedProduct.id)}
             onToggleWishlist={handleToggleWishlist}
+            isLoading={isCurrentScreenLoading}
           />
         )}
 
@@ -355,6 +359,21 @@ export function App() {
             {scr.label}
           </button>
         ))}
+
+        <button
+          type="button"
+          onClick={() => setIsSimulatingLoading((prev) => !prev)}
+          className={`ml-1 px-2 py-1 text-[10px] font-button uppercase tracking-wider border-l border-outline-variant pl-2 flex items-center gap-1 transition-colors ${
+            isSimulatingLoading
+              ? 'bg-secondary text-on-secondary font-bold'
+              : 'text-primary hover:bg-surface-container'
+          }`}
+          title="Toggle Skeleton Loading State"
+          aria-pressed={isSimulatingLoading}
+        >
+          <Loader2 className={`w-3 h-3 ${isSimulatingLoading ? 'animate-spin' : ''}`} />
+          <span>{isSimulatingLoading ? 'Skeletons: ON' : 'Test Skeletons'}</span>
+        </button>
 
         <button
           type="button"

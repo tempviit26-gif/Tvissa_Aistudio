@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Product, ActiveScreen } from '../types';
 import { ProductCard } from './ui/ProductCard';
 import { EmptyState } from './ui/EmptyState';
+import { ProductGridSkeleton } from './ui/SkeletonLoader';
 import { LayoutGrid, List, SlidersHorizontal, X, ArrowUpDown, Gem } from 'lucide-react';
 
 interface CollectionsScreenProps {
@@ -11,6 +12,7 @@ interface CollectionsScreenProps {
   wishlistIds: string[];
   onToggleWishlist: (product: Product) => void;
   setActiveScreen: (screen: ActiveScreen) => void;
+  isLoading?: boolean;
 }
 
 export const CollectionsScreen: React.FC<CollectionsScreenProps> = ({
@@ -19,6 +21,7 @@ export const CollectionsScreen: React.FC<CollectionsScreenProps> = ({
   onAddToCart,
   wishlistIds,
   onToggleWishlist,
+  isLoading = false,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedMaterial, setSelectedMaterial] = useState<string>('All');
@@ -26,6 +29,29 @@ export const CollectionsScreen: React.FC<CollectionsScreenProps> = ({
   const [sortBy, setSortBy] = useState<'featured' | 'price-low' | 'price-high' | 'name'>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'detailed'>('grid');
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  // Smooth micro-skeleton transition when switching categories or metals
+  const handleCategoryChange = (cat: string) => {
+    if (cat === selectedCategory) return;
+    setIsFiltering(true);
+    setSelectedCategory(cat);
+    setTimeout(() => setIsFiltering(false), 280);
+  };
+
+  const handleMaterialChange = (mat: string) => {
+    if (mat === selectedMaterial) return;
+    setIsFiltering(true);
+    setSelectedMaterial(mat);
+    setTimeout(() => setIsFiltering(false), 280);
+  };
+
+  const handlePriceChange = (price: string) => {
+    if (price === selectedPriceRange) return;
+    setIsFiltering(true);
+    setSelectedPriceRange(price);
+    setTimeout(() => setIsFiltering(false), 280);
+  };
 
   const categories = ['All', 'Necklaces', 'Earrings', 'Rings', 'Bracelets'];
   const materials = ['All', '18K YELLOW GOLD', 'STERLING SILVER', 'ROSE GOLD', 'DIAMONDS'];
@@ -105,7 +131,7 @@ export const CollectionsScreen: React.FC<CollectionsScreenProps> = ({
                 type="button"
                 role="tab"
                 aria-selected={isSelected}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => handleCategoryChange(cat)}
                 className={`px-5 py-2.5 font-button text-xs uppercase tracking-[0.2em] transition-all cursor-pointer border ${
                   isSelected
                     ? 'bg-primary text-on-primary border-primary font-semibold'
@@ -227,7 +253,7 @@ export const CollectionsScreen: React.FC<CollectionsScreenProps> = ({
                 </label>
                 <select
                   value={selectedMaterial}
-                  onChange={(e) => setSelectedMaterial(e.target.value)}
+                  onChange={(e) => handleMaterialChange(e.target.value)}
                   className="w-full bg-surface-container-lowest border border-outline-variant p-2.5 text-xs font-body-md text-primary focus:ring-0 focus:outline-none"
                 >
                   {materials.map((m) => (
@@ -245,7 +271,7 @@ export const CollectionsScreen: React.FC<CollectionsScreenProps> = ({
                 </label>
                 <select
                   value={selectedPriceRange}
-                  onChange={(e) => setSelectedPriceRange(e.target.value)}
+                  onChange={(e) => handlePriceChange(e.target.value)}
                   className="w-full bg-surface-container-lowest border border-outline-variant p-2.5 text-xs font-body-md text-primary focus:ring-0 focus:outline-none"
                 >
                   {priceRanges.map((pr) => (
@@ -263,7 +289,7 @@ export const CollectionsScreen: React.FC<CollectionsScreenProps> = ({
                 </label>
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
                   className="w-full bg-surface-container-lowest border border-outline-variant p-2.5 text-xs font-body-md text-primary focus:ring-0 focus:outline-none"
                 >
                   {categories.map((c) => (
@@ -333,9 +359,15 @@ export const CollectionsScreen: React.FC<CollectionsScreenProps> = ({
         )}
 
         {/* Product Grid / List Display */}
-        {filteredProducts.length > 0 ? (
+        {isLoading || isFiltering ? (
+          <ProductGridSkeleton
+            count={6}
+            viewMode={viewMode}
+            columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          />
+        ) : filteredProducts.length > 0 ? (
           viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter animate-fadeIn">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -349,7 +381,7 @@ export const CollectionsScreen: React.FC<CollectionsScreenProps> = ({
               ))}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fadeIn">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
