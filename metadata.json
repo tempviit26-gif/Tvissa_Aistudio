@@ -1,0 +1,6 @@
+{
+  "name": "Tvisaa Editorial Jewelry",
+  "description": "Quiet luxury fine jewelry boutique featuring curated essentials, The Heritage Collection, bespoke product customizer, editorial storytelling, bag, checkout, and account authentication.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
